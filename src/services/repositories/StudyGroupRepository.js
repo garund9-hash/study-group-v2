@@ -31,7 +31,7 @@ export class StudyGroupRepository {
         ...docSnapshot.data()
       }));
     } catch (error) {
-      console.error('Error fetching all study groups:', error);
+      if (import.meta.env.DEV) console.error('Error fetching all study groups:', error);
       throw error;
     }
   }
@@ -71,7 +71,7 @@ export class StudyGroupRepository {
         ...docSnap.data()
       };
     } catch (error) {
-      console.error('Error fetching study group:', error);
+      if (import.meta.env.DEV) console.error('Error fetching study group:', error);
       throw error;
     }
   }
@@ -91,7 +91,7 @@ export class StudyGroupRepository {
         ...docSnapshot.data()
       }));
     } catch (error) {
-      console.error('Error fetching organizer study groups:', error);
+      if (import.meta.env.DEV) console.error('Error fetching organizer study groups:', error);
       throw error;
     }
   }
@@ -126,7 +126,7 @@ export class StudyGroupRepository {
       const snapshot = await getDocs(q);
       return snapshot.size;
     } catch (error) {
-      console.error('Error getting study count:', error);
+      if (import.meta.env.DEV) console.error('Error getting study count:', error);
       throw error;
     }
   }
@@ -150,7 +150,7 @@ export class StudyGroupRepository {
         status: STATUS_TYPES.OPEN
       };
     } catch (error) {
-      console.error('Error creating study group:', error);
+      if (import.meta.env.DEV) console.error('Error creating study group:', error);
       throw error;
     }
   }
@@ -168,7 +168,7 @@ export class StudyGroupRepository {
         ...updates
       };
     } catch (error) {
-      console.error('Error updating study group:', error);
+      if (import.meta.env.DEV) console.error('Error updating study group:', error);
       throw error;
     }
   }

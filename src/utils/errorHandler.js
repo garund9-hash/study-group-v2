@@ -16,7 +16,7 @@ const AUTH_ERROR_MAP = {
 };
 
 export function handleServiceError(error) {
-  console.error('Service Error:', error);
+  if (import.meta.env.DEV) console.error('Service Error:', error);
 
   // Handle AppError
   if (error instanceof AppError) {

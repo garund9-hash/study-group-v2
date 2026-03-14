@@ -37,7 +37,7 @@ const Dashboard = () => {
     setActionError('');
     setActionLoading(true);
     try {
-      await ApplicationService.approveApplication(appId);
+      await ApplicationService.approveApplication(appId, currentUser.uid);
     } catch (err) {
       const { message } = handleServiceError(err);
       setActionError(message);
@@ -50,7 +50,7 @@ const Dashboard = () => {
     setActionError('');
     setActionLoading(true);
     try {
-      await ApplicationService.rejectApplication(appId);
+      await ApplicationService.rejectApplication(appId, currentUser.uid);
     } catch (err) {
       const { message } = handleServiceError(err);
       setActionError(message);
@@ -61,6 +61,10 @@ const Dashboard = () => {
 
   const handleDownloadCSV = async (study) => {
     setActionError('');
+    if (study.organizerId !== currentUser?.uid) {
+      setActionError('권한이 없습니다.');
+      return;
+    }
     try {
       const participants = await StudyGroupService.getParticipantListForExport(study.id);
       if (participants.length === 0) {

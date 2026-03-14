@@ -111,6 +111,7 @@ const CreateStudy = () => {
                 value={formData.title}
                 onChange={handleChange}
                 required
+                maxLength={100}
                 placeholder="예: 리액트 마스터 클래스"
               />
             </div>
@@ -156,6 +157,7 @@ const CreateStudy = () => {
               onChange={handleChange}
               required
               rows="8"
+              maxLength={2000}
               placeholder="스터디의 목적, 진행 방식, 시간, 장소 등을 자세히 적어주세요."
             />
           </div>

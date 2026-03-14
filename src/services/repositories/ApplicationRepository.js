@@ -5,6 +5,7 @@ import {
   where,
   onSnapshot,
   getDocs,
+  getDoc,
   addDoc,
   updateDoc,
   doc
@@ -29,7 +30,7 @@ export class ApplicationRepository {
         ...docSnapshot.data()
       }));
     } catch (error) {
-      console.error('Error fetching study group applications:', error);
+      if (import.meta.env.DEV) console.error('Error fetching study group applications:', error);
       throw error;
     }
   }
@@ -67,7 +68,7 @@ export class ApplicationRepository {
         ...docSnapshot.data()
       }));
     } catch (error) {
-      console.error('Error fetching user applications:', error);
+      if (import.meta.env.DEV) console.error('Error fetching user applications:', error);
       throw error;
     }
   }
@@ -103,7 +104,7 @@ export class ApplicationRepository {
       const snapshot = await getDocs(q);
       return !snapshot.empty;
     } catch (error) {
-      console.error('Error checking application status:', error);
+      if (import.meta.env.DEV) console.error('Error checking application status:', error);
       throw error;
     }
   }
@@ -127,7 +128,22 @@ export class ApplicationRepository {
         appliedAt: now
       };
     } catch (error) {
-      console.error('Error creating application:', error);
+      if (import.meta.env.DEV) console.error('Error creating application:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get a single application by ID
+   */
+  static async getApplicationById(applicationId) {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, applicationId);
+      const docSnapshot = await getDoc(docRef);
+      if (!docSnapshot.exists()) return null;
+      return { id: docSnapshot.id, ...docSnapshot.data() };
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('Error fetching application:', error);
       throw error;
     }
   }
@@ -142,7 +158,7 @@ export class ApplicationRepository {
 
       return { id: applicationId, status };
     } catch (error) {
-      console.error('Error updating application status:', error);
+      if (import.meta.env.DEV) console.error('Error updating application status:', error);
       throw error;
     }
   }
@@ -163,7 +179,7 @@ export class ApplicationRepository {
         ...docSnapshot.data()
       }));
     } catch (error) {
-      console.error('Error fetching approved participants:', error);
+      if (import.meta.env.DEV) console.error('Error fetching approved participants:', error);
       throw error;
     }
   }

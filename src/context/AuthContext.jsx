@@ -38,14 +38,14 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe;
   }, []);
 
-  const signup = async (email, password, displayName, role = ROLE_TYPES.USER) => {
+  const signup = async (email, password, displayName) => {
     const res = await createUserWithEmailAndPassword(auth, email, password);
     const user = res.user;
     const userProfile = {
       uid: user.uid,
       email,
       displayName,
-      role,
+      role: ROLE_TYPES.USER,
       createdAt: new Date().toISOString()
     };
     await setDoc(doc(db, USERS_COLLECTION, user.uid), userProfile);
