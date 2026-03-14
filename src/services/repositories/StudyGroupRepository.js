@@ -9,9 +9,9 @@ import {
   getDocs,
   addDoc,
   updateDoc,
-  doc,
-  limit
+  doc
 } from 'firebase/firestore';
+import { STATUS_TYPES } from '../../constants/constants';
 
 const COLLECTION_NAME = 'studyGroups';
 
@@ -26,9 +26,9 @@ export class StudyGroupRepository {
         orderBy('createdAt', 'desc')
       );
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
+      return snapshot.docs.map(docSnapshot => ({
+        id: docSnapshot.id,
+        ...docSnapshot.data()
       }));
     } catch (error) {
       console.error('Error fetching all study groups:', error);
@@ -46,9 +46,9 @@ export class StudyGroupRepository {
     );
 
     return onSnapshot(q, (snapshot) => {
-      const studies = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
+      const studies = snapshot.docs.map(docSnapshot => ({
+        id: docSnapshot.id,
+        ...docSnapshot.data()
       }));
       callback(studies);
     });
@@ -86,9 +86,9 @@ export class StudyGroupRepository {
         where('organizerId', '==', organizerId)
       );
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
+      return snapshot.docs.map(docSnapshot => ({
+        id: docSnapshot.id,
+        ...docSnapshot.data()
       }));
     } catch (error) {
       console.error('Error fetching organizer study groups:', error);
@@ -106,9 +106,9 @@ export class StudyGroupRepository {
     );
 
     return onSnapshot(q, (snapshot) => {
-      const studies = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
+      const studies = snapshot.docs.map(docSnapshot => ({
+        id: docSnapshot.id,
+        ...docSnapshot.data()
       }));
       callback(studies);
     });
@@ -136,17 +136,18 @@ export class StudyGroupRepository {
    */
   static async createStudyGroup(studyData) {
     try {
+      const now = new Date().toISOString();
       const docRef = await addDoc(collection(db, COLLECTION_NAME), {
         ...studyData,
-        createdAt: new Date().toISOString(),
-        status: 'open'
+        createdAt: now,
+        status: STATUS_TYPES.OPEN
       });
 
       return {
         id: docRef.id,
         ...studyData,
-        createdAt: new Date().toISOString(),
-        status: 'open'
+        createdAt: now,
+        status: STATUS_TYPES.OPEN
       };
     } catch (error) {
       console.error('Error creating study group:', error);

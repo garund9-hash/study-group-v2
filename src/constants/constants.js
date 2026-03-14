@@ -28,3 +28,11 @@ export const STUDY_CATEGORIES = [
 export const MAX_STUDIES_PER_ORGANIZER = 5;
 export const MIN_PARTICIPANTS = 2;
 export const MAX_PARTICIPANTS = 50;
+
+export const ROLE_TYPES = {
+  USER: 'user',
+  ORGANIZER: 'organizer'
+};
+
+export const MIN_PASSWORD_LENGTH = 6;
+export const DESCRIPTION_PREVIEW_LENGTH = 100;

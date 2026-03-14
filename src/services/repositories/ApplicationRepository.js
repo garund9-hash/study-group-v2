@@ -9,6 +9,7 @@ import {
   updateDoc,
   doc
 } from 'firebase/firestore';
+import { STATUS_TYPES } from '../../constants/constants';
 
 const COLLECTION_NAME = 'applications';
 
@@ -23,9 +24,9 @@ export class ApplicationRepository {
         where('studyGroupId', '==', studyGroupId)
       );
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
+      return snapshot.docs.map(docSnapshot => ({
+        id: docSnapshot.id,
+        ...docSnapshot.data()
       }));
     } catch (error) {
       console.error('Error fetching study group applications:', error);
@@ -43,9 +44,9 @@ export class ApplicationRepository {
     );
 
     return onSnapshot(q, (snapshot) => {
-      const applications = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
+      const applications = snapshot.docs.map(docSnapshot => ({
+        id: docSnapshot.id,
+        ...docSnapshot.data()
       }));
       callback(applications);
     });
@@ -61,9 +62,9 @@ export class ApplicationRepository {
         where('userId', '==', userId)
       );
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
+      return snapshot.docs.map(docSnapshot => ({
+        id: docSnapshot.id,
+        ...docSnapshot.data()
       }));
     } catch (error) {
       console.error('Error fetching user applications:', error);
@@ -81,9 +82,9 @@ export class ApplicationRepository {
     );
 
     return onSnapshot(q, (snapshot) => {
-      const applications = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
+      const applications = snapshot.docs.map(docSnapshot => ({
+        id: docSnapshot.id,
+        ...docSnapshot.data()
       }));
       callback(applications);
     });
@@ -112,17 +113,18 @@ export class ApplicationRepository {
    */
   static async createApplication(applicationData) {
     try {
+      const now = new Date().toISOString();
       const docRef = await addDoc(collection(db, COLLECTION_NAME), {
         ...applicationData,
-        status: 'pending',
-        appliedAt: new Date().toISOString()
+        status: STATUS_TYPES.PENDING,
+        appliedAt: now
       });
 
       return {
         id: docRef.id,
         ...applicationData,
-        status: 'pending',
-        appliedAt: new Date().toISOString()
+        status: STATUS_TYPES.PENDING,
+        appliedAt: now
       };
     } catch (error) {
       console.error('Error creating application:', error);
@@ -153,12 +155,12 @@ export class ApplicationRepository {
       const q = query(
         collection(db, COLLECTION_NAME),
         where('studyGroupId', '==', studyGroupId),
-        where('status', '==', 'approved')
+        where('status', '==', STATUS_TYPES.APPROVED)
       );
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
+      return snapshot.docs.map(docSnapshot => ({
+        id: docSnapshot.id,
+        ...docSnapshot.data()
       }));
     } catch (error) {
       console.error('Error fetching approved participants:', error);

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { StudyGroupRepository } from '../services/repositories/StudyGroupRepository';
 import { StudyGroupService } from '../services/StudyGroupService';
+import { MAX_STUDIES_PER_ORGANIZER } from '../constants/constants';
 
 /**
  * Hook to fetch all study groups with real-time updates
@@ -74,18 +75,21 @@ export function useStudyGroup(studyId) {
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    const fetchStudy = async () => {
+      setLoading(true);
+      setError(null);
 
-    StudyGroupService.getStudyGroup(studyId)
-      .then(data => {
+      try {
+        const data = await StudyGroupService.getStudyGroup(studyId);
         setStudy(data);
-        setLoading(false);
-      })
-      .catch(err => {
+      } catch (err) {
         setError(err);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchStudy();
   }, [studyId]);
 
   return { study, loading, error };
@@ -96,7 +100,7 @@ export function useStudyGroup(studyId) {
  */
 export function useCanCreateStudy(organizerId) {
   const [canCreate, setCanCreate] = useState(true);
-  const [remainingSlots, setRemainingSlots] = useState(5);
+  const [remainingSlots, setRemainingSlots] = useState(MAX_STUDIES_PER_ORGANIZER);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 

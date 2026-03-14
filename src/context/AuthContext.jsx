@@ -1,14 +1,16 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, db } from '../lib/firebase';
-import { 
-  onAuthStateChanged, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut 
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { ROLE_TYPES } from '../constants/constants';
 
 const AuthContext = createContext();
+const USERS_COLLECTION = 'users';
 
 export const useAuth = () => useContext(AuthContext);
 
@@ -20,7 +22,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const docRef = doc(db, "users", user.uid);
+        const docRef = doc(db, USERS_COLLECTION, user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setUserData(docSnap.data());
@@ -36,18 +38,18 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe;
   }, []);
 
-  const signup = async (email, password, displayName, role = 'user') => {
+  const signup = async (email, password, displayName, role = ROLE_TYPES.USER) => {
     const res = await createUserWithEmailAndPassword(auth, email, password);
     const user = res.user;
-    const userData = {
+    const userProfile = {
       uid: user.uid,
       email,
       displayName,
       role,
       createdAt: new Date().toISOString()
     };
-    await setDoc(doc(db, "users", user.uid), userData);
-    setUserData(userData);
+    await setDoc(doc(db, USERS_COLLECTION, user.uid), userProfile);
+    setUserData(userProfile);
     return res;
   };
 

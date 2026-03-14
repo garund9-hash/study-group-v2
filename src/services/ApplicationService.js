@@ -1,6 +1,6 @@
 import { ApplicationRepository } from './repositories/ApplicationRepository';
 import { AppError } from '../utils/errorHandler';
-import { ERROR_CODES } from '../constants/errors';
+import { ERROR_CODES, STATUS_TYPES } from '../constants/constants';
 
 export class ApplicationService {
   /**
@@ -13,7 +13,7 @@ export class ApplicationService {
       if (hasApplied) {
         throw new AppError(
           ERROR_CODES.ALREADY_APPLIED,
-          'ALREADY_APPLIED'
+          '이미 신청한 스터디입니다.'
         );
       }
 
@@ -67,7 +67,7 @@ export class ApplicationService {
    */
   static async approveApplication(applicationId) {
     try {
-      return await ApplicationRepository.updateApplicationStatus(applicationId, 'approved');
+      return await ApplicationRepository.updateApplicationStatus(applicationId, STATUS_TYPES.APPROVED);
     } catch (error) {
       throw new AppError(ERROR_CODES.UNKNOWN_ERROR, '승인에 실패했습니다.', error);
     }
@@ -78,7 +78,7 @@ export class ApplicationService {
    */
   static async rejectApplication(applicationId) {
     try {
-      return await ApplicationRepository.updateApplicationStatus(applicationId, 'rejected');
+      return await ApplicationRepository.updateApplicationStatus(applicationId, STATUS_TYPES.REJECTED);
     } catch (error) {
       throw new AppError(ERROR_CODES.UNKNOWN_ERROR, '거절에 실패했습니다.', error);
     }

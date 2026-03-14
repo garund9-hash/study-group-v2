@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
 import { Sparkles, AlertCircle } from 'lucide-react';
-import { STUDY_CATEGORIES } from '../constants/errors';
+import { STUDY_CATEGORIES, MAX_STUDIES_PER_ORGANIZER } from '../constants/constants';
 
 const CreateStudy = () => {
   const { currentUser, userData } = useAuth();
@@ -26,12 +26,6 @@ const CreateStudy = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Check authorization
-  if (!currentUser || userData?.role !== 'organizer') {
-    navigate('/');
-    return null;
-  }
-
   if (permissionLoading) {
     return <div className="loading-state">권한 확인 중...</div>;
   }
@@ -43,6 +37,7 @@ const CreateStudy = () => {
 
   const improveDescription = async () => {
     setError('');
+    setAiLoading(true);
     try {
       const enhanced = await TextEnhancerService.enhanceStudyDescription(
         formData.title,
@@ -83,7 +78,7 @@ const CreateStudy = () => {
         <div className="limit-reached">
           <AlertCircle size={48} color="#dc2626" />
           <h1>스터디 생성 한도 초과</h1>
-          <p>모임장은 최대 5개의 스터디만 운영할 수 있습니다. 기존 스터디를 종료한 후 다시 시도해주세요.</p>
+          <p>모임장은 최대 {MAX_STUDIES_PER_ORGANIZER}개의 스터디만 운영할 수 있습니다. 기존 스터디를 종료한 후 다시 시도해주세요.</p>
           <Button variant="outline" onClick={() => navigate('/')}>홈으로 돌아가기</Button>
         </div>
       </div>
@@ -100,7 +95,7 @@ const CreateStudy = () => {
         <div className="form-header">
           <h1>새로운 스터디 생성</h1>
           <p>당신의 지식을 나누고 함께 성장할 멤버를 모집하세요.</p>
-          <div className="count-badge">{5 - remainingSlots} / 5 운영 중</div>
+          <div className="count-badge">{MAX_STUDIES_PER_ORGANIZER - remainingSlots} / {MAX_STUDIES_PER_ORGANIZER} 운영 중</div>
         </div>
 
         <ErrorMessage message={error} />

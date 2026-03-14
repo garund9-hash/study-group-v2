@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useOrganizerStudyGroups } from '../hooks/useStudyGroups';
 import { useUserApplications, useStudyGroupApplications } from '../hooks/useApplications';
@@ -9,6 +8,7 @@ import { handleServiceError } from '../utils/errorHandler';
 import { exportParticipantsToCSV } from '../utils/csvExporter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../components/ui/Button';
+import { ErrorMessage } from '../components/ui/ErrorMessage';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import {
   Download,
@@ -32,11 +32,6 @@ const Dashboard = () => {
   const { applications: applicants } = useStudyGroupApplications(selectedStudy?.id);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState('');
-
-  if (!currentUser) {
-    navigate('/login');
-    return null;
-  }
 
   const handleApproveApplication = async (appId) => {
     setActionError('');
@@ -65,10 +60,11 @@ const Dashboard = () => {
   };
 
   const handleDownloadCSV = async (study) => {
+    setActionError('');
     try {
       const participants = await StudyGroupService.getParticipantListForExport(study.id);
       if (participants.length === 0) {
-        alert('내보낼 승인된 참가자가 없습니다.');
+        setActionError('내보낼 승인된 참가자가 없습니다.');
         return;
       }
       exportParticipantsToCSV(participants, study.title);
@@ -85,11 +81,9 @@ const Dashboard = () => {
         <p>{userData?.displayName} 님, 환영합니다.</p>
       </header>
 
-      {actionError && (
-        <div style={{ marginBottom: '2rem' }}>
-          <div className="error-message">{actionError}</div>
-        </div>
-      )}
+      <div style={{ marginBottom: '2rem' }}>
+        <ErrorMessage message={actionError} />
+      </div>
 
       <div className="dashboard-grid">
         {/* Left Column: Management */}

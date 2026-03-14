@@ -45,6 +45,52 @@ const StudyDetail = () => {
 
   const isOrganizer = currentUser?.uid === study.organizerId;
 
+  const renderApplicationButton = () => {
+    if (!currentUser) {
+      return (
+        <Button
+          variant="primary"
+          fullWidth
+          size="lg"
+          onClick={() => navigate('/login')}
+        >
+          로그인하고 신청하기
+        </Button>
+      );
+    }
+    if (isOrganizer) {
+      return (
+        <Button
+          variant="outline"
+          fullWidth
+          onClick={() => navigate('/dashboard')}
+        >
+          참가자 관리하기
+        </Button>
+      );
+    }
+    if (hasApplied) {
+      return (
+        <div className="applied-status">
+          <CheckCircle2 size={24} />
+          <span>신청 완료되었습니다.</span>
+          <p>모임장의 승인을 기다리고 있습니다.</p>
+        </div>
+      );
+    }
+    return (
+      <Button
+        variant="primary"
+        fullWidth
+        size="lg"
+        onClick={handleApply}
+        disabled={applying}
+      >
+        {applying ? '신청 처리 중...' : '스터디 참여 신청'}
+      </Button>
+    );
+  };
+
   return (
     <div className="container study-detail-page">
       <button onClick={() => navigate(-1)} className="back-btn">
@@ -69,8 +115,8 @@ const StudyDetail = () => {
           <div className="description-section">
             <h3>스터디 상세 소개</h3>
             <div className="description-text">
-              {study.description.split('\n').map((line, i) => (
-                <p key={i}>{line}</p>
+              {study.description.split('\n').map((line, lineIndex) => (
+                <p key={lineIndex}>{line}</p>
               ))}
             </div>
           </div>
@@ -92,42 +138,7 @@ const StudyDetail = () => {
 
             {error && <div style={{ marginBottom: '1rem' }} className="error-message">{error}</div>}
 
-            {currentUser ? (
-              isOrganizer ? (
-                <Button
-                  variant="outline"
-                  fullWidth
-                  onClick={() => navigate('/dashboard')}
-                >
-                  참가자 관리하기
-                </Button>
-              ) : hasApplied ? (
-                <div className="applied-status">
-                  <CheckCircle2 size={24} />
-                  <span>신청 완료되었습니다.</span>
-                  <p>모임장의 승인을 기다리고 있습니다.</p>
-                </div>
-              ) : (
-                <Button
-                  variant="primary"
-                  fullWidth
-                  size="lg"
-                  onClick={handleApply}
-                  disabled={applying}
-                >
-                  {applying ? '신청 처리 중...' : '스터디 참여 신청'}
-                </Button>
-              )
-            ) : (
-              <Button
-                variant="primary"
-                fullWidth
-                size="lg"
-                onClick={() => navigate('/login')}
-              >
-                로그인하고 신청하기
-              </Button>
-            )}
+            {renderApplicationButton()}
 
             <p className="sidebar-hint">
               * 승인 후에는 대시보드에서 상태를 확인하실 수 있습니다.

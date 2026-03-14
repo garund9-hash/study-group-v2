@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { ROLE_TYPES, MIN_PASSWORD_LENGTH } from '../constants/constants';
 import { motion } from 'framer-motion';
 
 const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const [role, setRole] = useState('user');
+  const [role, setRole] = useState(ROLE_TYPES.USER);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signup } = useAuth();
@@ -15,8 +16,8 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (password.length < 6) {
-      return setError('비밀번호는 최소 6자 이상이어야 합니다.');
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      return setError(`비밀번호는 최소 ${MIN_PASSWORD_LENGTH}자 이상이어야 합니다.`);
     }
     
     try {
@@ -69,7 +70,7 @@ const Register = () => {
             />
           </div>
           <div className="input-group">
-            <label className="input-label">비밀번호 (6자 이상)</label>
+            <label className="input-label">{`비밀번호 (${MIN_PASSWORD_LENGTH}자 이상)`}</label>
             <input 
               type="password" 
               className="input-field" 
@@ -83,17 +84,17 @@ const Register = () => {
           <div className="input-group">
             <label className="input-label">가입 유형</label>
             <div className="role-selector">
-              <button 
-                type="button" 
-                className={`role-btn ${role === 'user' ? 'active' : ''}`}
-                onClick={() => setRole('user')}
+              <button
+                type="button"
+                className={`role-btn ${role === ROLE_TYPES.USER ? 'active' : ''}`}
+                onClick={() => setRole(ROLE_TYPES.USER)}
               >
                 일반 사용자
               </button>
-              <button 
-                type="button" 
-                className={`role-btn ${role === 'organizer' ? 'active' : ''}`}
-                onClick={() => setRole('organizer')}
+              <button
+                type="button"
+                className={`role-btn ${role === ROLE_TYPES.ORGANIZER ? 'active' : ''}`}
+                onClick={() => setRole(ROLE_TYPES.ORGANIZER)}
               >
                 모임장
               </button>

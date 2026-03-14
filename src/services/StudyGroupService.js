@@ -1,7 +1,7 @@
 import { StudyGroupRepository } from './repositories/StudyGroupRepository';
 import { ApplicationRepository } from './repositories/ApplicationRepository';
 import { AppError, handleServiceError } from '../utils/errorHandler';
-import { MAX_STUDIES_PER_ORGANIZER, ERROR_CODES } from '../constants/errors';
+import { MAX_STUDIES_PER_ORGANIZER, ERROR_CODES } from '../constants/constants';
 
 export class StudyGroupService {
   /**
@@ -14,7 +14,7 @@ export class StudyGroupService {
       if (studyCount >= MAX_STUDIES_PER_ORGANIZER) {
         throw new AppError(
           ERROR_CODES.STUDY_LIMIT_EXCEEDED,
-          'STUDY_LIMIT_EXCEEDED'
+          '최대 5개까지만 스터디를 생성할 수 있습니다.'
         );
       }
 
@@ -112,10 +112,10 @@ export class StudyGroupService {
     try {
       const participants = await ApplicationRepository.getApprovedParticipants(studyGroupId);
 
-      return participants.map(p => ({
-        name: p.userName,
-        email: p.userEmail,
-        appliedAt: p.appliedAt
+      return participants.map(participant => ({
+        name: participant.userName,
+        email: participant.userEmail,
+        appliedAt: participant.appliedAt
       }));
     } catch (error) {
       throw new AppError(ERROR_CODES.UNKNOWN_ERROR, '참가자 목록 조회에 실패했습니다.', error);

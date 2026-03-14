@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAllStudyGroups } from '../hooks/useStudyGroups';
+import { DESCRIPTION_PREVIEW_LENGTH } from '../constants/constants';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CategoryTag } from '../components/ui/CategoryTag';
@@ -54,7 +55,11 @@ const Home = () => {
               >
                 <CategoryTag category={study.category} className="study-tag" />
                 <h3 className="study-title">{study.title}</h3>
-                <p className="study-desc">{study.description.substring(0, 100)}...</p>
+                <p className="study-desc">
+                  {study.description.length > DESCRIPTION_PREVIEW_LENGTH
+                    ? `${study.description.substring(0, DESCRIPTION_PREVIEW_LENGTH)}...`
+                    : study.description}
+                </p>
                 
                 <div className="study-info">
                   <div className="info-item">

@@ -1,6 +1,6 @@
 import { getGeminiModel } from '../lib/gemini';
 import { AppError } from '../utils/errorHandler';
-import { ERROR_CODES } from '../constants/errors';
+import { ERROR_CODES } from '../constants/constants';
 
 export class TextEnhancerService {
   /**
