@@ -20,9 +20,14 @@ import {
   Layout
 } from 'lucide-react';
 
+const expandCollapse = {
+  initial: { height: 0, opacity: 0 },
+  animate: { height: 'auto', opacity: 1 },
+  exit: { height: 0, opacity: 0 }
+};
+
 const Dashboard = () => {
   const { currentUser, userData } = useAuth();
-  const navigate = useNavigate();
 
   // Hooks for data fetching
   const { studies: myStudies } = useOrganizerStudyGroups(currentUser?.uid);
@@ -116,9 +121,7 @@ const Dashboard = () => {
                     {selectedStudy?.id === study.id && (
                       <motion.div
                         className="applicant-list"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
+                        {...expandCollapse}
                       >
                         <div className="applicant-actions">
                           <Button

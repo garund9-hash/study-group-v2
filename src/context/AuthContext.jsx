@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { auth, db } from '../lib/firebase';
 import {
   onAuthStateChanged,
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe;
   }, []);
 
-  const signup = async (email, password, displayName) => {
+  const signup = useCallback(async (email, password, displayName) => {
     const res = await createUserWithEmailAndPassword(auth, email, password);
     const user = res.user;
     const userProfile = {
@@ -51,23 +51,23 @@ export const AuthProvider = ({ children }) => {
     await setDoc(doc(db, USERS_COLLECTION, user.uid), userProfile);
     setUserData(userProfile);
     return res;
-  };
+  }, []);
 
-  const login = (email, password) => {
+  const login = useCallback((email, password) => {
     return signInWithEmailAndPassword(auth, email, password);
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     return signOut(auth);
-  };
+  }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     currentUser,
     userData,
     signup,
     login,
     logout
-  };
+  }), [currentUser, userData, signup, login, logout]);
 
   return (
     <AuthContext.Provider value={value}>

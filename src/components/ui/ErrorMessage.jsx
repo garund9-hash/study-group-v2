@@ -1,7 +1,7 @@
 import React from 'react';
 import { AlertCircle } from 'lucide-react';
 
-export function ErrorMessage({ message, className = '' }) {
+export const ErrorMessage = React.memo(function ErrorMessage({ message, className = '' }) {
   if (!message) return null;
 
   return (
@@ -10,4 +10,4 @@ export function ErrorMessage({ message, className = '' }) {
       {message}
     </div>
   );
-}
+});

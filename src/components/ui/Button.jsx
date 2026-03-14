@@ -1,6 +1,6 @@
 import React from 'react';
 
-export function Button({
+export const Button = React.memo(function Button({
   variant = 'primary',
   size = 'md',
   fullWidth = false,
@@ -35,4 +35,4 @@ export function Button({
       {children}
     </button>
   );
-}
+});

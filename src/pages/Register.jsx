@@ -4,6 +4,12 @@ import { useAuth } from '../context/AuthContext';
 import { MIN_PASSWORD_LENGTH } from '../constants/constants';
 import { motion } from 'framer-motion';
 
+const cardSlideIn = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.6, ease: "easeOut" }
+};
+
 const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,11 +40,9 @@ const Register = () => {
 
   return (
     <div className="auth-page">
-      <motion.div 
+      <motion.div
         className="auth-card"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        {...cardSlideIn}
       >
         <h1 className="auth-title">Join Wit.me</h1>
         <p className="auth-subtitle">함께 성장하는 즐거움, 당신의 성장을 응원합니다.</p>

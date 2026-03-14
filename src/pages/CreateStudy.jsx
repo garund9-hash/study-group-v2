@@ -11,6 +11,11 @@ import { ErrorMessage } from '../components/ui/ErrorMessage';
 import { Sparkles, AlertCircle } from 'lucide-react';
 import { STUDY_CATEGORIES, MAX_STUDIES_PER_ORGANIZER } from '../constants/constants';
 
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 }
+};
+
 const CreateStudy = () => {
   const { currentUser, userData } = useAuth();
   const navigate = useNavigate();
@@ -89,8 +94,7 @@ const CreateStudy = () => {
     <div className="container create-study-page">
       <motion.div
         className="form-container"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        {...fadeInUp}
       >
         <div className="form-header">
           <h1>새로운 스터디 생성</h1>

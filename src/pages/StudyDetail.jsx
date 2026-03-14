@@ -8,6 +8,17 @@ import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import { Users, Calendar, ArrowLeft, CheckCircle2, User } from 'lucide-react';
 
+const slideInLeft = {
+  initial: { opacity: 0, x: -20 },
+  animate: { opacity: 1, x: 0 }
+};
+
+const scaleIn = {
+  initial: { opacity: 0, scale: 0.95 },
+  animate: { opacity: 1, scale: 1 },
+  transition: { delay: 0.2 }
+};
+
 const StudyDetail = () => {
   const { id } = useParams();
   const { currentUser, userData } = useAuth();
@@ -100,8 +111,7 @@ const StudyDetail = () => {
       <div className="detail-layout">
         <motion.div
           className="detail-content"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
+          {...slideInLeft}
         >
           <div className="study-header">
             <span className="category-tag">{study.category}</span>
@@ -124,9 +134,7 @@ const StudyDetail = () => {
 
         <motion.div
           className="detail-sidebar"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
+          {...scaleIn}
         >
           <div className="sidebar-card">
             <div className="sidebar-info-group">

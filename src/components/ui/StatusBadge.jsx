@@ -2,7 +2,7 @@ import React from 'react';
 import { Clock, CheckCircle, XCircle } from 'lucide-react';
 import { STATUS_TYPES } from '../../constants/constants';
 
-export function StatusBadge({ status, showIcon = true, className = '' }) {
+export const StatusBadge = React.memo(function StatusBadge({ status, showIcon = true, className = '' }) {
   const statusConfig = {
     [STATUS_TYPES.PENDING]: {
       icon: Clock,
@@ -32,4 +32,4 @@ export function StatusBadge({ status, showIcon = true, className = '' }) {
       {config.label}
     </span>
   );
-}
+});

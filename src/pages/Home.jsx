@@ -6,6 +6,23 @@ import { motion } from 'framer-motion';
 import { CategoryTag } from '../components/ui/CategoryTag';
 import { Users, Calendar, ArrowRight } from 'lucide-react';
 
+const fadeInDown = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.8 }
+};
+
+const fadeIn = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  transition: { delay: 0.4, duration: 0.8 }
+};
+
+const cardAnimation = {
+  initial: { opacity: 0, scale: 0.95 },
+  animate: { opacity: 1, scale: 1 }
+};
+
 const Home = () => {
   const { studies, loading } = useAllStudyGroups();
 
@@ -15,19 +32,11 @@ const Home = () => {
     <div className="home-page">
       <header className="hero">
         <div className="container">
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
+          <motion.h1 {...fadeInDown}>
             함께 배우고, 함께 성장하는 <br />
             <span>Wit.me</span> 스터디 플랫폼
           </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
-          >
+          <motion.p {...fadeIn}>
             관심 있는 분야의 스터디를 찾거나 직접 만들어보세요.
           </motion.p>
         </div>
@@ -49,8 +58,7 @@ const Home = () => {
               <motion.div
                 key={study.id}
                 className="study-card"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
+                {...cardAnimation}
                 transition={{ delay: index * 0.1, duration: 0.5 }}
               >
                 <CategoryTag category={study.category} className="study-tag" />

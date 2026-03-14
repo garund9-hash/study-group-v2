@@ -9,21 +9,24 @@ import {
   getDocs,
   addDoc,
   updateDoc,
-  doc
+  doc,
+  limit
 } from 'firebase/firestore';
 import { STATUS_TYPES } from '../../constants/constants';
 
 const COLLECTION_NAME = 'studyGroups';
+const DEFAULT_PAGE_SIZE = 20;
 
 export class StudyGroupRepository {
   /**
    * Get all study groups, ordered by creation date (newest first)
    */
-  static async getAllStudyGroups() {
+  static async getAllStudyGroups(pageSize = DEFAULT_PAGE_SIZE) {
     try {
       const q = query(
         collection(db, COLLECTION_NAME),
-        orderBy('createdAt', 'desc')
+        orderBy('createdAt', 'desc'),
+        limit(pageSize)
       );
       const snapshot = await getDocs(q);
       return snapshot.docs.map(docSnapshot => ({
@@ -39,10 +42,11 @@ export class StudyGroupRepository {
   /**
    * Subscribe to all study groups with real-time updates
    */
-  static subscribeToAllStudyGroups(callback) {
+  static subscribeToAllStudyGroups(callback, pageSize = DEFAULT_PAGE_SIZE) {
     const q = query(
       collection(db, COLLECTION_NAME),
-      orderBy('createdAt', 'desc')
+      orderBy('createdAt', 'desc'),
+      limit(pageSize)
     );
 
     return onSnapshot(q, (snapshot) => {

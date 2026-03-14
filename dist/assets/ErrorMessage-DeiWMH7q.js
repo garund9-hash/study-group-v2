@@ -1,0 +1,1 @@
+import{j as e,e as o}from"./ui-Bk9tGWuW.js";import{c as t}from"./vendor-C-oB3Ezu.js";const n=t.memo(function({message:r,className:s=""}){return r?e.jsxs("div",{className:`error-message ${s}`,children:[e.jsx(o,{size:18}),r]}):null});export{n as E};
