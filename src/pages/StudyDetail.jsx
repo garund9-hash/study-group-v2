@@ -1,66 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { db } from '../lib/firebase';
-import { doc, getDoc, collection, addDoc, query, where, getDocs } from 'firebase/firestore';
+import { useStudyGroup } from '../hooks/useStudyGroups';
+import { ApplicationService } from '../services/ApplicationService';
+import { handleServiceError } from '../utils/errorHandler';
 import { motion } from 'framer-motion';
+import { Button } from '../components/ui/Button';
 import { Users, Calendar, ArrowLeft, CheckCircle2, User } from 'lucide-react';
 
 const StudyDetail = () => {
   const { id } = useParams();
   const { currentUser, userData } = useAuth();
   const navigate = useNavigate();
-  
-  const [study, setStudy] = useState(null);
-  const [loading, setLoading] = useState(true);
+
+  const { study, loading } = useStudyGroup(id);
   const [applying, setApplying] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
-
-  useEffect(() => {
-    const fetchStudy = async () => {
-      const docRef = doc(db, "studyGroups", id);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setStudy({ id: docSnap.id, ...docSnap.data() });
-        
-        // Check if user has already applied
-        if (currentUser) {
-          const q = query(
-            collection(db, "applications"), 
-            where("studyGroupId", "==", id), 
-            where("userId", "==", currentUser.uid)
-          );
-          const appSnap = await getDocs(q);
-          setHasApplied(!appSnap.empty);
-        }
-      } else {
-        navigate('/');
-      }
-      setLoading(false);
-    };
-
-    fetchStudy();
-  }, [id, currentUser, navigate]);
+  const [error, setError] = useState('');
 
   const handleApply = async () => {
     if (!currentUser) return navigate('/login');
-    if (study.organizerId === currentUser.uid) return;
 
     setApplying(true);
+    setError('');
+
     try {
-      await addDoc(collection(db, "applications"), {
-        studyGroupId: id,
-        studyTitle: study.title,
-        userId: currentUser.uid,
-        userName: userData.displayName,
-        userEmail: currentUser.email,
-        status: 'pending',
-        appliedAt: new Date().toISOString()
-      });
+      await ApplicationService.applyToStudyGroup(
+        study,
+        currentUser.uid,
+        userData.displayName,
+        currentUser.email
+      );
       setHasApplied(true);
     } catch (err) {
-      console.error(err);
-      alert('신청에 실패했습니다.');
+      const { message } = handleServiceError(err);
+      setError(message);
     } finally {
       setApplying(false);
     }
@@ -78,7 +52,7 @@ const StudyDetail = () => {
       </button>
 
       <div className="detail-layout">
-        <motion.div 
+        <motion.div
           className="detail-content"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -102,7 +76,7 @@ const StudyDetail = () => {
           </div>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           className="detail-sidebar"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -113,17 +87,20 @@ const StudyDetail = () => {
               <label>모집 인원</label>
               <div className="sidebar-val"><Users size={18} /> {study.maxParticipants}명</div>
             </div>
-            
+
             <div className="sidebar-divider"></div>
+
+            {error && <div style={{ marginBottom: '1rem' }} className="error-message">{error}</div>}
 
             {currentUser ? (
               isOrganizer ? (
-                <button 
-                  onClick={() => navigate('/dashboard')} 
-                  className="btn btn-outline btn-full"
+                <Button
+                  variant="outline"
+                  fullWidth
+                  onClick={() => navigate('/dashboard')}
                 >
                   참가자 관리하기
-                </button>
+                </Button>
               ) : hasApplied ? (
                 <div className="applied-status">
                   <CheckCircle2 size={24} />
@@ -131,23 +108,27 @@ const StudyDetail = () => {
                   <p>모임장의 승인을 기다리고 있습니다.</p>
                 </div>
               ) : (
-                <button 
-                  onClick={handleApply} 
-                  className="btn btn-primary btn-full btn-large"
+                <Button
+                  variant="primary"
+                  fullWidth
+                  size="lg"
+                  onClick={handleApply}
                   disabled={applying}
                 >
                   {applying ? '신청 처리 중...' : '스터디 참여 신청'}
-                </button>
+                </Button>
               )
             ) : (
-              <button 
-                onClick={() => navigate('/login')} 
-                className="btn btn-primary btn-full btn-large"
+              <Button
+                variant="primary"
+                fullWidth
+                size="lg"
+                onClick={() => navigate('/login')}
               >
                 로그인하고 신청하기
-              </button>
+              </Button>
             )}
-            
+
             <p className="sidebar-hint">
               * 승인 후에는 대시보드에서 상태를 확인하실 수 있습니다.
             </p>

@@ -1,27 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { db } from '../lib/firebase';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import React from 'react';
+import { useAllStudyGroups } from '../hooks/useStudyGroups';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { CategoryTag } from '../components/ui/CategoryTag';
 import { Users, Calendar, ArrowRight } from 'lucide-react';
 
 const Home = () => {
-  const [studies, setStudies] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const q = query(collection(db, "studyGroups"), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const studyData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setStudies(studyData);
-      setLoading(false);
-    });
-
-    return unsubscribe;
-  }, []);
+  const { studies, loading } = useAllStudyGroups();
 
   if (loading) return <div className="loading-state">스터디를 불러오는 중...</div>;
 
@@ -60,14 +45,14 @@ const Home = () => {
         ) : (
           <div className="study-grid">
             {studies.map((study, index) => (
-              <motion.div 
+              <motion.div
                 key={study.id}
                 className="study-card"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.1, duration: 0.5 }}
               >
-                <div className="study-tag">{study.category}</div>
+                <CategoryTag category={study.category} className="study-tag" />
                 <h3 className="study-title">{study.title}</h3>
                 <p className="study-desc">{study.description.substring(0, 100)}...</p>
                 

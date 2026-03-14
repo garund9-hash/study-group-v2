@@ -1,23 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { db } from '../lib/firebase';
-import { 
-  collection, 
-  query, 
-  where, 
-  onSnapshot, 
-  updateDoc, 
-  doc,
-  getDocs 
-} from 'firebase/firestore';
+import { useOrganizerStudyGroups } from '../hooks/useStudyGroups';
+import { useUserApplications, useStudyGroupApplications } from '../hooks/useApplications';
+import { ApplicationService } from '../services/ApplicationService';
+import { StudyGroupService } from '../services/StudyGroupService';
+import { handleServiceError } from '../utils/errorHandler';
+import { exportParticipantsToCSV } from '../utils/csvExporter';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Download, 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  ChevronRight, 
+import { Button } from '../components/ui/Button';
+import { StatusBadge } from '../components/ui/StatusBadge';
+import {
+  Download,
+  CheckCircle,
+  XCircle,
+  ChevronRight,
   ChevronDown,
   UserCheck,
   Layout
@@ -26,103 +23,60 @@ import {
 const Dashboard = () => {
   const { currentUser, userData } = useAuth();
   const navigate = useNavigate();
-  
-  const [myStudies, setMyStudies] = useState([]);
-  const [myApplications, setMyApplications] = useState([]);
+
+  // Hooks for data fetching
+  const { studies: myStudies } = useOrganizerStudyGroups(currentUser?.uid);
+  const { applications: myApplications } = useUserApplications(currentUser?.uid);
+
   const [selectedStudy, setSelectedStudy] = useState(null);
-  const [applicants, setApplicants] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { applications: applicants } = useStudyGroupApplications(selectedStudy?.id);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState('');
 
-  useEffect(() => {
-    if (!currentUser) {
-      navigate('/login');
-      return;
-    }
+  if (!currentUser) {
+    navigate('/login');
+    return null;
+  }
 
-    // 1. Fetch studies I manage (if organizer)
-    const studiesQuery = query(
-      collection(db, "studyGroups"), 
-      where("organizerId", "==", currentUser.uid)
-    );
-    const unsubStudies = onSnapshot(studiesQuery, (snap) => {
-      setMyStudies(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-
-    // 2. Fetch my applications
-    const appsQuery = query(
-      collection(db, "applications"), 
-      where("userId", "==", currentUser.uid)
-    );
-    const unsubApps = onSnapshot(appsQuery, (snap) => {
-      setMyApplications(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-
-    setLoading(false);
-    return () => {
-      unsubStudies();
-      unsubApps();
-    };
-  }, [currentUser, navigate]);
-
-  // Fetch applicants for a specific study
-  useEffect(() => {
-    if (!selectedStudy) {
-      setApplicants([]);
-      return;
-    }
-
-    const q = query(collection(db, "applications"), where("studyGroupId", "==", selectedStudy.id));
-    const unsub = onSnapshot(q, (snap) => {
-      setApplicants(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-
-    return unsub;
-  }, [selectedStudy]);
-
-  const handleUpdateStatus = async (appId, newStatus) => {
+  const handleApproveApplication = async (appId) => {
+    setActionError('');
+    setActionLoading(true);
     try {
-      await updateDoc(doc(db, "applications", appId), { status: newStatus });
+      await ApplicationService.approveApplication(appId);
     } catch (err) {
-      console.error(err);
-      alert('상태 업데이트 실패');
+      const { message } = handleServiceError(err);
+      setActionError(message);
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  const downloadCSV = async (study) => {
-    const q = query(
-      collection(db, "applications"), 
-      where("studyGroupId", "==", study.id),
-      where("status", "==", "approved")
-    );
-    const snap = await getDocs(q);
-    const participants = snap.docs.map(d => d.data());
-
-    if (participants.length === 0) return alert('승인된 참가자가 없습니다.');
-
-    const headers = ['Name', 'Email', 'Applied At'];
-    const rows = participants.map(p => [
-      p.userName,
-      p.userEmail,
-      new Date(p.appliedAt).toLocaleDateString()
-    ]);
-
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(r => r.join(','))
-    ].join('\n');
-
-    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `witme_${study.title}_participants.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleRejectApplication = async (appId) => {
+    setActionError('');
+    setActionLoading(true);
+    try {
+      await ApplicationService.rejectApplication(appId);
+    } catch (err) {
+      const { message } = handleServiceError(err);
+      setActionError(message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  if (loading) return <div className="loading-state">로딩 중...</div>;
+  const handleDownloadCSV = async (study) => {
+    try {
+      const participants = await StudyGroupService.getParticipantListForExport(study.id);
+      if (participants.length === 0) {
+        alert('내보낼 승인된 참가자가 없습니다.');
+        return;
+      }
+      exportParticipantsToCSV(participants, study.title);
+    } catch (err) {
+      const { message } = handleServiceError(err);
+      setActionError(message);
+    }
+  };
 
   return (
     <div className="container dashboard-page">
@@ -131,6 +85,12 @@ const Dashboard = () => {
         <p>{userData?.displayName} 님, 환영합니다.</p>
       </header>
 
+      {actionError && (
+        <div style={{ marginBottom: '2rem' }}>
+          <div className="error-message">{actionError}</div>
+        </div>
+      )}
+
       <div className="dashboard-grid">
         {/* Left Column: Management */}
         <div className="dashboard-section">
@@ -138,14 +98,14 @@ const Dashboard = () => {
             <Layout size={20} />
             <h2>내가 운영하는 스터디</h2>
           </div>
-          
+
           {myStudies.length === 0 ? (
             <div className="empty-panel">운영 중인 스터디가 없습니다.</div>
           ) : (
             <div className="card-list">
               {myStudies.map(study => (
-                <div 
-                  key={study.id} 
+                <div
+                  key={study.id}
                   className={`manage-card ${selectedStudy?.id === study.id ? 'active' : ''}`}
                   onClick={() => setSelectedStudy(selectedStudy?.id === study.id ? null : study)}
                 >
@@ -153,24 +113,28 @@ const Dashboard = () => {
                     <h3>{study.title}</h3>
                     {selectedStudy?.id === study.id ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
                   </div>
-                  
+
                   <AnimatePresence>
                     {selectedStudy?.id === study.id && (
-                      <motion.div 
+                      <motion.div
                         className="applicant-list"
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                       >
                         <div className="applicant-actions">
-                          <button 
-                            className="btn btn-outline btn-sm"
-                            onClick={(e) => { e.stopPropagation(); downloadCSV(study); }}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDownloadCSV(study);
+                            }}
                           >
                             <Download size={14} /> 명단 다운로드 (CSV)
-                          </button>
+                          </Button>
                         </div>
-                        
+
                         {applicants.length === 0 ? (
                           <div className="no-applicants">신청자가 아직 없습니다.</div>
                         ) : (
@@ -183,23 +147,29 @@ const Dashboard = () => {
                               <div className="app-status-actions">
                                 {app.status === 'pending' ? (
                                   <>
-                                    <button 
+                                    <button
                                       className="status-btn approve"
-                                      onClick={(e) => { e.stopPropagation(); handleUpdateStatus(app.id, 'approved'); }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleApproveApplication(app.id);
+                                      }}
+                                      disabled={actionLoading}
                                     >
                                       <CheckCircle size={18} />
                                     </button>
-                                    <button 
+                                    <button
                                       className="status-btn reject"
-                                      onClick={(e) => { e.stopPropagation(); handleUpdateStatus(app.id, 'rejected'); }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRejectApplication(app.id);
+                                      }}
+                                      disabled={actionLoading}
                                     >
                                       <XCircle size={18} />
                                     </button>
                                   </>
                                 ) : (
-                                  <span className={`status-badge ${app.status}`}>
-                                    {app.status === 'approved' ? '승인됨' : '거절됨'}
-                                  </span>
+                                  <StatusBadge status={app.status} />
                                 )}
                               </div>
                             </div>
@@ -220,7 +190,7 @@ const Dashboard = () => {
             <UserCheck size={20} />
             <h2>나의 신청 현황</h2>
           </div>
-          
+
           {myApplications.length === 0 ? (
             <div className="empty-panel">신청한 스터디가 없습니다.</div>
           ) : (
@@ -231,11 +201,7 @@ const Dashboard = () => {
                     <h4>{app.studyTitle}</h4>
                     <span className="app-date">{new Date(app.appliedAt).toLocaleDateString()} 신청</span>
                   </div>
-                  <div className={`status-tag ${app.status}`}>
-                    {app.status === 'pending' && <><Clock size={14} /> 대기 중</>}
-                    {app.status === 'approved' && <><CheckCircle size={14} /> 승인됨</>}
-                    {app.status === 'rejected' && <><XCircle size={14} /> 거절됨</>}
-                  </div>
+                  <StatusBadge status={app.status} />
                 </div>
               ))}
             </div>
